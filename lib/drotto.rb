@@ -1,6 +1,7 @@
 require 'krang'
 require 'awesome_print'
 require 'yaml'
+require 'mongo'
 # require 'pry'
 
 Bundler.require
@@ -17,6 +18,9 @@ module DrOtto
   include Chain
   
   extend self
+  
+  client = Mongo::Client.new('mongodb://127.0.0.1:27017/test')
+  db = client.database
   
   app_key :drotto
   agent_id AGENT_ID
@@ -144,6 +148,20 @@ module DrOtto
         invert_vote_weight: invert_vote_weight,
         trx_id: id
       }
+      collection = client[:spotlight]
+      doc = {
+        from: from,
+        author: author,
+        permlink: permlink,
+        parent_permlink: comment.parent_permlink,
+        parent_author: comment.parent_author,
+        amount: amount,
+        timestamp: timestamp,
+        invert_vote_weight: invert_vote_weight,
+        trx_id: id 
+      }
+      result = collection.insert_one(doc)
+      next unless result.n === 1
     end
   end
   
